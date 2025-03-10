@@ -20,15 +20,18 @@ const resultTitle = document.getElementById('result-title');
 const resultMessage = document.getElementById('result-message');
 const correctWordElement = document.getElementById('correct-word');
 const playAgainButton = document.getElementById('play-again');
+const mobileInput = document.getElementById('mobile-input');
+const gameContainer = document.querySelector('.game-container');
+const focusIndicator = document.getElementById('focus-indicator');
 
 // Bucin Words Database (5 letters)
 const bucinWords = [
     'RINDU', 'BAPER', 'SAYANG', 'CINTA', 'KANGEN',
-    'BUCIN', 'JODOH', 'PACAR', 'KASMARAN', 'MESRA',
-    'CINTA', 'KASIH', 'KAMU', 'CEPET', 'NUNGGU',
-    'PAPTT', 'GHOST', 'TOXIC', 'VIBES', 'SLAY',
-    'MOOD', 'BAPER', 'GALAU', 'SEDIH', 'PUTUS',
-    'SESAL', 'MARAH', 'KESAL', 'CUEK', 'GOMBAL'
+    'BUCIN', 'JODOH', 'PACAR', 'MESRA', 'KASIH', 
+    'KAMU', 'CENEL', 'NUNGGU', 'PAPOY', 'GHOST', 
+    'TOXIC', 'VIBES', 'MOVES', 'MOODY', 'GALAU', 
+    'SEDIH', 'PUTUS', 'SESAL', 'MARAH', 'KESAL', 
+    'CUEKS', 'GOMBAL', 'BENCI', 'KESAL', 'DEMEN'
 ];
 
 // Bucin Responses
@@ -70,10 +73,23 @@ const responses = {
     ]
 };
 
+// Fungsi untuk memvalidasi bahwa semua kata memiliki 5 huruf
+function validateWordLength() {
+    for (let i = 0; i < bucinWords.length; i++) {
+        if (bucinWords[i].length !== 5) {
+            console.error(`Kata "${bucinWords[i]}" tidak memiliki 5 huruf!`);
+        }
+    }
+}
+
+// Panggil fungsi validasi saat inisialisasi
+validateWordLength();
+
 // Initialize Game
 function initGame() {
     createBoard();
     createKeyboard();
+    setupMobileKeyboard();
     currentWord = getRandomWord();
     isGameOver = false;
     gameWon = false;
@@ -86,7 +102,15 @@ function initGame() {
 
 // Get Random Word
 function getRandomWord() {
-    return bucinWords[Math.floor(Math.random() * bucinWords.length)];
+    // Filter kata-kata yang memiliki tepat 5 huruf
+    const validWords = bucinWords.filter(word => word.length === 5);
+    
+    if (validWords.length === 0) {
+        console.error("Tidak ada kata 5 huruf dalam database!");
+        return "BUCIN"; // Default fallback
+    }
+    
+    return validWords[Math.floor(Math.random() * validWords.length)];
 }
 
 // Create Game Board
@@ -130,12 +154,23 @@ function createKeyboard() {
                 keyButton.classList.add('wide');
             }
             
-            keyButton.addEventListener('click', () => handleKeyPress(key));
+            keyButton.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent event bubbling to game container
+                handleKeyPress(key);
+            });
             keyboardRow.appendChild(keyButton);
         });
         
         keyboard.appendChild(keyboardRow);
     });
+    
+    // Add info text for mobile users
+    if (isMobileDevice()) {
+        const infoText = document.createElement('p');
+        infoText.classList.add('keyboard-info');
+        infoText.textContent = 'Ketuk di mana saja untuk menggunakan keyboard HP';
+        keyboard.appendChild(infoText);
+    }
 }
 
 // Handle Key Press
@@ -149,6 +184,11 @@ function handleKeyPress(key) {
     } else if (/^[A-Z]$/.test(key) && currentTile < WORD_LENGTH) {
         addLetter(key);
     }
+    
+    // Refocus mobile input after each key press
+    if (isMobileDevice()) {
+        setTimeout(focusMobileInput, 10);
+    }
 }
 
 // Add Letter to Current Tile
@@ -158,6 +198,31 @@ function addLetter(letter) {
         tile.textContent = letter;
         tile.classList.add('filled');
         currentTile++;
+        
+        // Give visual feedback when reaching max letters
+        if (currentTile === WORD_LENGTH) {
+            const rowTiles = document.querySelectorAll(`.tile[data-row="${currentRow}"]`);
+            rowTiles.forEach(tile => {
+                tile.classList.add('ready');
+                setTimeout(() => {
+                    tile.classList.remove('ready');
+                }, 100);
+            });
+        }
+    } else {
+        // Visual feedback that max letters reached
+        const rowTiles = document.querySelectorAll(`.tile[data-row="${currentRow}"]`);
+        rowTiles.forEach(tile => {
+            tile.classList.add('shake');
+            setTimeout(() => {
+                tile.classList.remove('shake');
+            }, 300);
+        });
+    }
+    
+    // Refocus mobile input after adding letter
+    if (isMobileDevice()) {
+        setTimeout(focusMobileInput, 10);
     }
 }
 
@@ -169,24 +234,40 @@ function deleteLetter() {
         tile.textContent = '';
         tile.classList.remove('filled');
     }
+    
+    // Refocus mobile input after deleting letter
+    if (isMobileDevice()) {
+        setTimeout(focusMobileInput, 10);
+    }
 }
 
 // Submit Guess
 function submitGuess() {
+    // Pastikan semua 5 kotak terisi
     if (currentTile !== WORD_LENGTH) {
-        showMessage(getRandomResponse('invalidWord'));
+        showMessage(`Kata harus ${WORD_LENGTH} huruf! Masih kurang ${WORD_LENGTH - currentTile} huruf lagi.`);
         shakeRow();
         return;
     }
     
     const guess = getCurrentWord();
     
-    // Check if word is valid (in this simple version, we'll just check if it's 5 letters)
+    // Pastikan kata memiliki tepat 5 huruf
     if (guess.length !== WORD_LENGTH) {
-        showMessage(getRandomResponse('invalidWord'));
+        showMessage(`Kata harus tepat ${WORD_LENGTH} huruf!`);
         shakeRow();
         return;
     }
+    
+    // Opsional: Validasi kata ada dalam database
+    // Uncomment kode di bawah ini jika ingin membatasi hanya kata dalam database
+    /*
+    if (!bucinWords.includes(guess)) {
+        showMessage(`"${guess}" bukan kata bucin yang valid! ${getRandomResponse('invalidWord')}`);
+        shakeRow();
+        return;
+    }
+    */
     
     // Check guess against current word
     const result = checkGuess(guess);
@@ -372,7 +453,14 @@ document.addEventListener('keydown', (e) => {
 });
 
 // Initialize Game on Load
-document.addEventListener('DOMContentLoaded', initGame);
+document.addEventListener('DOMContentLoaded', () => {
+    initGame();
+    
+    // Focus mobile input on page load for mobile devices
+    if (isMobileDevice()) {
+        setTimeout(focusMobileInput, 500);
+    }
+});
 
 // Easter Egg: If win in first try
 function checkEasterEgg() {
@@ -401,5 +489,84 @@ function checkFailedGamesCount() {
                 failedGamesCount = 0;
             }, 2000);
         }
+    }
+}
+
+// Setup Mobile Keyboard
+function setupMobileKeyboard() {
+    // Focus input field when game container is clicked
+    gameContainer.addEventListener('click', focusMobileInput);
+    
+    // Handle input from mobile keyboard
+    mobileInput.addEventListener('input', handleMobileInput);
+    
+    // Handle backspace and enter on mobile
+    mobileInput.addEventListener('keydown', handleMobileKeydown);
+    
+    // Show focus indicator on mobile
+    if (isMobileDevice()) {
+        showFocusIndicator();
+    }
+}
+
+// Check if device is mobile
+function isMobileDevice() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
+// Focus mobile input field
+function focusMobileInput() {
+    mobileInput.focus();
+    gameContainer.classList.add('keyboard-active');
+    
+    // Scroll to make sure the game board is visible when keyboard appears
+    if (isMobileDevice()) {
+        setTimeout(() => {
+            window.scrollTo({
+                top: board.offsetTop - 50,
+                behavior: 'smooth'
+            });
+        }, 300);
+    }
+    
+    // Hide focus indicator after focusing
+    setTimeout(() => {
+        focusIndicator.classList.remove('visible');
+    }, 1000);
+}
+
+// Show focus indicator
+function showFocusIndicator() {
+    focusIndicator.classList.add('visible');
+    
+    // Hide after 3 seconds
+    setTimeout(() => {
+        focusIndicator.classList.remove('visible');
+    }, 3000);
+}
+
+// Handle input from mobile keyboard
+function handleMobileInput(e) {
+    const input = e.data;
+    
+    if (input && input.length === 1 && /^[a-zA-Z]$/.test(input)) {
+        handleKeyPress(input.toUpperCase());
+    }
+    
+    // Clear the input field for next character
+    mobileInput.value = '';
+}
+
+// Handle keydown events from mobile keyboard
+function handleMobileKeydown(e) {
+    if (e.key === 'Backspace') {
+        deleteLetter();
+    } else if (e.key === 'Enter') {
+        submitGuess();
+    }
+    
+    // Prevent default behavior for these keys
+    if (e.key === 'Backspace' || e.key === 'Enter') {
+        e.preventDefault();
     }
 } 

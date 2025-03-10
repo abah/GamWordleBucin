@@ -317,6 +317,46 @@ footer {
     display: none;
 }
 
+/* Mobile Input for Native Keyboard */
+.mobile-input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    height: 0;
+    width: 0;
+    z-index: -1;
+    /* Tetap bisa menerima fokus tapi tidak terlihat */
+}
+
+/* Tambahkan indikator fokus untuk mobile */
+.focus-indicator {
+    position: fixed;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--primary-color);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 100;
+}
+
+.focus-indicator.visible {
+    opacity: 0.8;
+}
+
+/* Keyboard Info Text */
+.keyboard-info {
+    text-align: center;
+    color: var(--secondary-color);
+    font-size: 0.8rem;
+    margin-top: 10px;
+    opacity: 0.8;
+}
+
 /* Responsive Styles */
 @media (max-width: 500px) {
     .tile {
@@ -337,6 +377,12 @@ footer {
     
     h1 {
         font-size: 2rem;
+    }
+    
+    /* Tambahkan style untuk menunjukkan keyboard aktif di mobile */
+    .game-container.keyboard-active {
+        border: 2px solid var(--primary-color);
+        border-radius: 10px;
     }
 }
 
