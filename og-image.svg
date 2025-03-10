@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#fff0f5"/>
+  <rect x="50" y="50" width="1100" height="530" rx="20" fill="#ff6b9d" opacity="0.1"/>
+  
+  <!-- Title -->
+  <text x="600" y="150" font-family="Arial, sans-serif" font-size="80" font-weight="bold" text-anchor="middle" fill="#ff4d79">
+    Wordle Bucin Mode 💔
+  </text>
+  
+  <!-- Subtitle -->
+  <text x="600" y="220" font-family="Arial, sans-serif" font-size="40" text-anchor="middle" fill="#ff6b9d">
+    Tebak kata bucin dalam 6 kesempatan
+  </text>
+  
+  <!-- Game Board Example -->
+  <g transform="translate(350, 280)">
+    <!-- Row 1 -->
+    <rect x="0" y="0" width="80" height="80" rx="5" fill="#6aaa64"/>
+    <text x="40" y="50" font-family="Arial, sans-serif" font-size="40" font-weight="bold" text-anchor="middle" fill="white">S</text>
+    
+    <rect x="100" y="0" width="80" height="80" rx="5" fill="#c9b458"/>
+    <text x="140" y="50" font-family="Arial, sans-serif" font-size="40" font-weight="bold" text-anchor="middle" fill="white">A</text>
+    
+    <rect x="200" y="0" width="80" height="80" rx="5" fill="#787c7e"/>
+    <text x="240" y="50" font-family="Arial, sans-serif" font-size="40" font-weight="bold" text-anchor="middle" fill="white">Y</text>
+    
+    <rect x="300" y="0" width="80" height="80" rx="5" fill="#6aaa64"/>
+    <text x="340" y="50" font-family="Arial, sans-serif" font-size="40" font-weight="bold" text-anchor="middle" fill="white">A</text>
+    
+    <rect x="400" y="0" width="80" height="80" rx="5" fill="#c9b458"/>
+    <text x="440" y="50" font-family="Arial, sans-serif" font-size="40" font-weight="bold" text-anchor="middle" fill="white">N</text>
+    
+    <!-- Row 2 -->
+    <rect x="0" y="100" width="80" height="80" rx="5" fill="#787c7e"/>
+    <text x="40" y="150" font-family="Arial, sans-serif" font-size="40" font-weight="bold" text-anchor="middle" fill="white">B</text>
+    
+    <rect x="100" y="100" width="80" height="80" rx="5" fill="#6aaa64"/>
+    <text x="140" y="150" font-family="Arial, sans-serif" font-size="40" font-weight="bold" text-anchor="middle" fill="white">A</text>
+    
+    <rect x="200" y="100" width="80" height="80" rx="5" fill="#6aaa64"/>
+    <text x="240" y="150" font-family="Arial, sans-serif" font-size="40" font-weight="bold" text-anchor="middle" fill="white">P</text>
+    
+    <rect x="300" y="100" width="80" height="80" rx="5" fill="#6aaa64"/>
+    <text x="340" y="150" font-family="Arial, sans-serif" font-size="40" font-weight="bold" text-anchor="middle" fill="white">E</text>
+    
+    <rect x="400" y="100" width="80" height="80" rx="5" fill="#6aaa64"/>
+    <text x="440" y="150" font-family="Arial, sans-serif" font-size="40" font-weight="bold" text-anchor="middle" fill="white">R</text>
+  </g>
+  
+  <!-- Message Bubble -->
+  <g transform="translate(600, 500)">
+    <rect x="-250" y="-50" width="500" height="100" rx="20" fill="#ff6b9d"/>
+    <path d="M200, 0 L230, 30 L200, 60" fill="#ff6b9d"/>
+    <text x="0" y="15" font-family="Arial, sans-serif" font-size="30" text-anchor="middle" fill="white">
+      "Duh, kalau peka ke aku gini dari dulu, pasti udah jadian!"
+    </text>
+  </g>
+</svg> 

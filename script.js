@@ -240,16 +240,17 @@ function checkGuess(guess) {
         if (guessArray[i] === wordArray[i]) {
             result[i] = 'correct';
             wordArray[i] = null;
+            guessArray[i] = null; // Mark as processed
         }
     }
     
     // Second pass: check for present but wrong position
     for (let i = 0; i < WORD_LENGTH; i++) {
-        if (result[i] !== 'correct') {
+        if (guessArray[i] !== null) { // Skip already processed letters
             const index = wordArray.indexOf(guessArray[i]);
             if (index !== -1) {
                 result[i] = 'present';
-                wordArray[index] = null;
+                wordArray[index] = null; // Mark as used
             }
         }
     }
