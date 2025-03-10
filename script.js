@@ -194,7 +194,7 @@ function submitGuess() {
     updateKeyboard(guess, result);
     
     // Check if game is won or lost
-    if (guess === currentWord) {
+    if (result.every(status => status === 'correct')) {
         gameWon = true;
         isGameOver = true;
         setTimeout(() => {
@@ -232,26 +232,29 @@ function getCurrentWord() {
 // Check Guess Against Current Word
 function checkGuess(guess) {
     const result = Array(WORD_LENGTH).fill('absent');
-    const wordArray = currentWord.split('');
-    const guessArray = guess.split('');
     
-    // First pass: check for correct positions
+    // Create copies of the arrays to work with
+    const secretLetters = currentWord.split('');
+    const guessLetters = guess.split('');
+    
+    // First pass: Mark correct positions (green)
     for (let i = 0; i < WORD_LENGTH; i++) {
-        if (guessArray[i] === wordArray[i]) {
+        if (guessLetters[i] === secretLetters[i]) {
             result[i] = 'correct';
-            wordArray[i] = null;
-            guessArray[i] = null; // Mark as processed
+            secretLetters[i] = null; // Mark as used in secret word
+            guessLetters[i] = null;  // Mark as processed in guess
         }
     }
     
-    // Second pass: check for present but wrong position
+    // Second pass: Mark present but wrong position (yellow)
     for (let i = 0; i < WORD_LENGTH; i++) {
-        if (guessArray[i] !== null) { // Skip already processed letters
-            const index = wordArray.indexOf(guessArray[i]);
-            if (index !== -1) {
+        if (guessLetters[i] !== null) { // Skip already processed letters
+            const letterIndex = secretLetters.indexOf(guessLetters[i]);
+            if (letterIndex !== -1) {
                 result[i] = 'present';
-                wordArray[index] = null; // Mark as used
+                secretLetters[letterIndex] = null; // Mark as used
             }
+            // If letterIndex is -1, the result remains 'absent' (gray)
         }
     }
     
@@ -280,6 +283,8 @@ function updateTiles(result) {
 function updateKeyboard(guess, result) {
     for (let i = 0; i < WORD_LENGTH; i++) {
         const letter = guess[i];
+        if (!letter) continue; // Skip null letters (already processed in checkGuess)
+        
         const keyElement = Array.from(document.querySelectorAll('.key')).find(key => 
             key.textContent.trim() === letter && !key.classList.contains('wide')
         );
