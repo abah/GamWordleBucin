@@ -177,6 +177,12 @@ function createKeyboard() {
 function handleKeyPress(key) {
     if (isGameOver) return;
     
+    // Gunakan debounce sederhana untuk mencegah input ganda
+    if (handleKeyPress.lastKeyTime && Date.now() - handleKeyPress.lastKeyTime < 100) {
+        return; // Abaikan input jika terlalu cepat setelah input sebelumnya
+    }
+    handleKeyPress.lastKeyTime = Date.now();
+    
     if (key === '⌫') {
         deleteLetter();
     } else if (key === 'ENTER') {
@@ -441,6 +447,10 @@ playAgainButton.addEventListener('click', resetGame);
 document.addEventListener('keydown', (e) => {
     if (isGameOver) return;
     
+    // Jika input berasal dari mobile input field, abaikan
+    // karena sudah ditangani oleh handleMobileInput
+    if (e.target === mobileInput) return;
+    
     const key = e.key.toUpperCase();
     
     if (key === 'BACKSPACE' || key === 'DELETE') {
@@ -516,6 +526,10 @@ function isMobileDevice() {
 
 // Focus mobile input field
 function focusMobileInput() {
+    // Kosongkan input field sebelum fokus untuk mencegah input ganda
+    mobileInput.value = '';
+    
+    // Fokus ke input field
     mobileInput.focus();
     gameContainer.classList.add('keyboard-active');
     
@@ -547,26 +561,33 @@ function showFocusIndicator() {
 
 // Handle input from mobile keyboard
 function handleMobileInput(e) {
+    // Mencegah input ganda dengan membersihkan input field terlebih dahulu
     const input = e.data;
+    mobileInput.value = ''; // Kosongkan input field segera
     
+    // Hanya proses satu karakter pada satu waktu
     if (input && input.length === 1 && /^[a-zA-Z]$/.test(input)) {
-        handleKeyPress(input.toUpperCase());
+        // Gunakan setTimeout untuk memastikan input diproses setelah field dikosongkan
+        setTimeout(() => {
+            handleKeyPress(input.toUpperCase());
+        }, 10);
     }
-    
-    // Clear the input field for next character
-    mobileInput.value = '';
 }
 
 // Handle keydown events from mobile keyboard
 function handleMobileKeydown(e) {
+    // Gunakan debounce sederhana untuk mencegah input ganda
+    if (handleMobileKeydown.lastKeyTime && Date.now() - handleMobileKeydown.lastKeyTime < 200) {
+        e.preventDefault();
+        return; // Abaikan input jika terlalu cepat setelah input sebelumnya
+    }
+    handleMobileKeydown.lastKeyTime = Date.now();
+    
     if (e.key === 'Backspace') {
         deleteLetter();
+        e.preventDefault();
     } else if (e.key === 'Enter') {
         submitGuess();
-    }
-    
-    // Prevent default behavior for these keys
-    if (e.key === 'Backspace' || e.key === 'Enter') {
         e.preventDefault();
     }
 } 
