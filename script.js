@@ -9,6 +9,7 @@ let currentRow = 0;
 let currentTile = 0;
 let isGameOver = false;
 let gameWon = false;
+let debugMode = true; // Aktifkan mode debug untuk membantu troubleshooting
 
 // DOM Elements
 const board = document.getElementById('board');
@@ -26,12 +27,23 @@ const focusIndicator = document.getElementById('focus-indicator');
 
 // Bucin Words Database (5 letters)
 const bucinWords = [
-    'RINDU', 'BAPER', 'SAYANG', 'CINTA', 'KANGEN',
-    'BUCIN', 'JODOH', 'PACAR', 'MESRA', 'KASIH', 
-    'KAMU', 'CENEL', 'NUNGGU', 'PAPOY', 'GHOST', 
-    'TOXIC', 'VIBES', 'MOVES', 'MOODY', 'GALAU', 
-    'SEDIH', 'PUTUS', 'SESAL', 'MARAH', 'KESAL', 
-    'CUEKS', 'GOMBAL', 'BENCI', 'KESAL', 'DEMEN'
+    'RINDU', // 5 huruf
+    'BAPER', // 5 huruf
+    'CINTA', // 5 huruf
+    'BUCIN', // 5 huruf
+    'JODOH', // 5 huruf
+    'PACAR', // 5 huruf
+    'MESRA', // 5 huruf
+    'KASIH', // 5 huruf
+    'KALEM', // 5 huruf
+    'CAPER', // 5 huruf
+    'SABAR', // 5 huruf
+    'GALAU', // 5 huruf
+    'SEDIH', // 5 huruf
+    'PUTUS', // 5 huruf
+    'SESAL', // 5 huruf
+    'MARAH', // 5 huruf
+    'KESAL'  // 5 huruf
 ];
 
 // Bucin Responses
@@ -75,10 +87,17 @@ const responses = {
 
 // Fungsi untuk memvalidasi bahwa semua kata memiliki 5 huruf
 function validateWordLength() {
+    const invalidWords = [];
     for (let i = 0; i < bucinWords.length; i++) {
         if (bucinWords[i].length !== 5) {
-            console.error(`Kata "${bucinWords[i]}" tidak memiliki 5 huruf!`);
+            invalidWords.push(`"${bucinWords[i]}" (${bucinWords[i].length} huruf)`);
         }
+    }
+    
+    if (invalidWords.length > 0) {
+        console.error(`Error: Kata-kata berikut tidak memiliki 5 huruf: ${invalidWords.join(', ')}`);
+    } else {
+        console.log("Semua kata memiliki 5 huruf ✓");
     }
 }
 
@@ -90,19 +109,23 @@ function initGame() {
     createBoard();
     createKeyboard();
     setupMobileKeyboard();
+    
+    // Pilih kata rahasia sekali saja saat game dimulai
     currentWord = getRandomWord();
     isGameOver = false;
     gameWon = false;
     currentRow = 0;
     currentTile = 0;
     
-    // For debugging
-    console.log("Secret word:", currentWord);
+    // Untuk debugging
+    if (debugMode) {
+        console.log("Secret word:", currentWord);
+    }
 }
 
 // Get Random Word
 function getRandomWord() {
-    // Filter kata-kata yang memiliki tepat 5 huruf
+    // Pastikan semua kata memiliki 5 huruf
     const validWords = bucinWords.filter(word => word.length === 5);
     
     if (validWords.length === 0) {
@@ -110,7 +133,28 @@ function getRandomWord() {
         return "BUCIN"; // Default fallback
     }
     
-    return validWords[Math.floor(Math.random() * validWords.length)];
+    // Hapus duplikat dalam validWords
+    const uniqueValidWords = [...new Set(validWords)];
+    
+    // Log untuk debugging
+    if (debugMode) {
+        console.log(`Choosing from ${uniqueValidWords.length} valid words`);
+        
+        // Periksa apakah ada duplikat yang dihapus
+        if (uniqueValidWords.length < validWords.length) {
+            console.warn(`${validWords.length - uniqueValidWords.length} kata duplikat dihapus`);
+        }
+    }
+    
+    const randomWord = uniqueValidWords[Math.floor(Math.random() * uniqueValidWords.length)];
+    
+    // Pastikan kata yang dipilih memiliki tepat 5 huruf
+    if (randomWord.length !== 5) {
+        console.error(`Error: Selected word "${randomWord}" does not have 5 letters!`);
+        return "BUCIN"; // Default fallback
+    }
+    
+    return randomWord;
 }
 
 // Create Game Board
@@ -258,6 +302,11 @@ function submitGuess() {
     
     const guess = getCurrentWord();
     
+    // Log untuk debugging
+    if (debugMode) {
+        console.log(`Row ${currentRow}: Guessing "${guess}" against secret "${currentWord}"`);
+    }
+    
     // Pastikan kata memiliki tepat 5 huruf
     if (guess.length !== WORD_LENGTH) {
         showMessage(`Kata harus tepat ${WORD_LENGTH} huruf!`);
@@ -318,7 +367,20 @@ function getCurrentWord() {
 
 // Check Guess Against Current Word
 function checkGuess(guess) {
+    // Pastikan currentWord tidak kosong atau undefined
+    if (!currentWord || currentWord.length !== WORD_LENGTH) {
+        console.error("Error: Invalid secret word!", currentWord);
+        // Pilih kata baru jika kata saat ini tidak valid
+        currentWord = getRandomWord();
+        console.log("New secret word:", currentWord);
+    }
+    
     const result = Array(WORD_LENGTH).fill('absent');
+    
+    // Log untuk debugging
+    if (debugMode) {
+        console.log(`Checking guess "${guess}" against secret "${currentWord}"`);
+    }
     
     // Create copies of the arrays to work with
     const secretLetters = currentWord.split('');
@@ -345,17 +407,35 @@ function checkGuess(guess) {
         }
     }
     
+    // Log hasil untuk debugging
+    if (debugMode) {
+        console.log(`Result: ${result.join(', ')}`);
+    }
+    
     return result;
 }
 
 // Update Tiles with Result
 function updateTiles(result) {
+    // Log untuk debugging
+    if (debugMode) {
+        console.log(`Updating tiles for row ${currentRow} with result: ${result.join(', ')}`);
+    }
+    
     for (let i = 0; i < WORD_LENGTH; i++) {
         setTimeout(() => {
             const tile = document.querySelector(`.tile[data-row="${currentRow}"][data-col="${i}"]`);
+            if (!tile) {
+                console.error(`Tile not found: row=${currentRow}, col=${i}`);
+                return;
+            }
+            
             tile.classList.add('flip');
             
             setTimeout(() => {
+                // Hapus kelas warna yang mungkin sudah ada
+                tile.classList.remove('correct', 'present', 'absent');
+                // Tambahkan kelas warna baru
                 tile.classList.add(result[i]);
             }, ANIMATION_DURATION / 2);
             
@@ -368,6 +448,11 @@ function updateTiles(result) {
 
 // Update Keyboard with Result
 function updateKeyboard(guess, result) {
+    // Log untuk debugging
+    if (debugMode) {
+        console.log(`Updating keyboard for guess: ${guess}`);
+    }
+    
     for (let i = 0; i < WORD_LENGTH; i++) {
         const letter = guess[i];
         if (!letter) continue; // Skip null letters (already processed in checkGuess)
@@ -387,6 +472,8 @@ function updateKeyboard(guess, result) {
             } else if (!keyElement.classList.contains('correct') && !keyElement.classList.contains('present')) {
                 keyElement.classList.add('absent');
             }
+        } else if (debugMode) {
+            console.error(`Key element not found for letter: ${letter}`);
         }
     }
 }
